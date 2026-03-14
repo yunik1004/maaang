@@ -15,7 +15,7 @@
 	<!-- 상단 장식선 -->
 	<div class="h-0.5 w-full bg-gradient-to-r from-transparent via-primary to-transparent"></div>
 
-	<div class="navbar px-8 py-3">
+	<div class="navbar mx-auto max-w-screen-2xl px-8 py-3">
 		<div class="navbar-start gap-3">
 			<a
 				href={resolve('/')}
@@ -41,4 +41,6 @@
 	<div class="h-px w-full bg-gradient-to-r from-transparent via-primary/50 to-transparent"></div>
 </header>
 
-{@render children()}
+<div class="mx-auto max-w-screen-2xl">
+	{@render children()}
+</div>
