@@ -1,6 +1,6 @@
 <script lang="ts">
 	import './layout.css';
-	import favicon from '$lib/assets/favicon.svg';
+	import favicon from '$lib/assets/marcus.png';
 	import LangTooltip from '$lib/components/LangTooltip.svelte';
 	import { resolve } from '$app/paths';
 
