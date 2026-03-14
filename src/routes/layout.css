@@ -1,2 +1,64 @@
 @import 'tailwindcss';
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Raleway:wght@300;400;500&display=swap');
 @plugin '@tailwindcss/typography';
+@plugin 'daisyui' {
+	themes: [ 'reverse1999'];
+}
+
+@plugin 'daisyui/theme' {
+	name: 'reverse1999';
+	default: true;
+	color-scheme: dark;
+	--color-base-100: oklch(11% 0.01 60);
+	--color-base-200: oklch(15% 0.015 60);
+	--color-base-300: oklch(20% 0.02 60);
+	--color-base-content: oklch(88% 0.03 75);
+	--color-primary: oklch(72% 0.14 72);
+	--color-primary-content: oklch(12% 0.04 285);
+	--color-secondary: oklch(52% 0.18 290);
+	--color-secondary-content: oklch(95% 0.01 75);
+	--color-accent: oklch(62% 0.12 25);
+	--color-accent-content: oklch(95% 0.01 75);
+	--color-neutral: oklch(22% 0.05 285);
+	--color-neutral-content: oklch(88% 0.03 75);
+	--rounded-box: 0;
+	--rounded-btn: 0;
+	--rounded-badge: 0;
+}
+
+@layer base {
+	body {
+		font-family: 'Raleway', sans-serif;
+		background-color: oklch(11% 0.01 60);
+	}
+
+	h1,
+	h2,
+	h3 {
+		font-family: 'Playfair Display', serif;
+	}
+}
+
+@layer components {
+	.deco-border {
+		border: 1px solid oklch(72% 0.14 72 / 0.4);
+		position: relative;
+	}
+
+	.deco-border::before,
+	.deco-border::after {
+		content: '◆';
+		color: oklch(72% 0.14 72);
+		position: absolute;
+		font-size: 0.5rem;
+		top: -0.4rem;
+	}
+
+	.deco-border::before {
+		left: -0.3rem;
+	}
+
+	.deco-border::after {
+		right: -0.3rem;
+	}
+}

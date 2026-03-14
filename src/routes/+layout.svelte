@@ -1,9 +1,44 @@
 <script lang="ts">
 	import './layout.css';
 	import favicon from '$lib/assets/favicon.svg';
+	import LangTooltip from '$lib/components/LangTooltip.svelte';
+	import { resolve } from '$app/paths';
 
 	let { children } = $props();
 </script>
 
-<svelte:head><link rel="icon" href={favicon} /></svelte:head>
+<svelte:head>
+	<link rel="icon" href={favicon} />
+</svelte:head>
+
+<header class="border-b border-primary/20 bg-gradient-to-b from-primary/10 to-base-100">
+	<!-- 상단 장식선 -->
+	<div class="h-0.5 w-full bg-gradient-to-r from-transparent via-primary to-transparent"></div>
+
+	<div class="navbar px-8 py-3">
+		<div class="navbar-start gap-3">
+			<a
+				href={resolve('/')}
+				class="font-playfair text-xl font-bold tracking-widest text-primary uppercase"
+				style="font-family: 'Playfair Display', serif;"
+			>
+				maaang
+			</a>
+		</div>
+
+		<div class="navbar-end items-center gap-3">
+			<LangTooltip />
+			<a
+				href={resolve('/transpile')}
+				class="text-xs tracking-widest text-base-content/50 uppercase transition-colors hover:text-primary"
+			>
+				Transpile
+			</a>
+		</div>
+	</div>
+
+	<!-- 하단 장식선 -->
+	<div class="h-px w-full bg-gradient-to-r from-transparent via-primary/50 to-transparent"></div>
+</header>
+
 {@render children()}
