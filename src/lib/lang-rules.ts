@@ -48,5 +48,10 @@ export const transpilerRules: Entry[] = [
 	{ kind: 'rule', title: '문자열 변수', example: 'msg = "hi"\nprint(msg)' },
 	{ kind: 'rule', title: 'for 루프', example: 'for i in range(5):\n  print(i)' },
 	{ kind: 'rule', title: 'while 루프', example: 'while True:\n  ...' },
-	{ kind: 'rule', title: 'break', example: 'while True:\n  break' }
+	{ kind: 'rule', title: 'break', example: 'while True:\n  break' },
+	{
+		kind: 'rule',
+		title: 'if / else  (==  !=  truthy)',
+		example: 'if x != 0:\n  print(x)\nelse:\n  print(0)'
+	}
 ];

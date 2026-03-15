@@ -339,6 +339,30 @@ function getIndent(line: string): number {
 	return line.match(/^(\s*)/)?.[1].length ?? 0;
 }
 
+// ─── 조건식 처리 ──────────────────────────────────────────────────────────────
+
+// 정수 불리언 NOT: 1//(1+x*x) → x=0이면 1, x≠0이면 0
+const BOOL_NOT = '자허... 자허... 마아앙! 마앙 망! 자허! 자허 마앙 자허! 마아아앙!';
+
+function parseCondition(cond: string, env: VarEnv): { tokens: string[]; inverted: boolean } {
+	// != 먼저 (= 기호 오인 방지)
+	const neqIdx = cond.indexOf('!=');
+	if (neqIdx !== -1) {
+		const lTokens = transpileExpr(cond.slice(0, neqIdx).trim(), env);
+		const rTokens = transpileExpr(cond.slice(neqIdx + 2).trim(), env);
+		return { tokens: [...lTokens, ...rTokens, '마앙!'], inverted: false };
+	}
+	// ==
+	const eqIdx = cond.indexOf('==');
+	if (eqIdx !== -1) {
+		const lTokens = transpileExpr(cond.slice(0, eqIdx).trim(), env);
+		const rTokens = transpileExpr(cond.slice(eqIdx + 2).trim(), env);
+		return { tokens: [...lTokens, ...rTokens, '마앙!'], inverted: true };
+	}
+	// 단순 표현식 (0이면 거짓, 아니면 참)
+	return { tokens: transpileExpr(cond, env), inverted: false };
+}
+
 type LoopType = 'for' | 'while' | null;
 
 function transpileBlock(
@@ -442,6 +466,57 @@ function transpileStatement(
 		out.push('마앙!?');
 		out.push('망!?');
 		return afterBody;
+	}
+
+	// if condition:
+	const ifMatch = trimmed.match(/^if\s+(.+)\s*:$/);
+	if (ifMatch) {
+		const { tokens: condTokens, inverted } = parseCondition(ifMatch[1].trim(), env);
+		const condEmit = inverted ? condTokens.join(' ') + ' ' + BOOL_NOT : condTokens.join(' ');
+
+		// 바디 먼저 임시 배열에 트랜스파일
+		const bodyOut: string[] = [];
+		const afterBody = transpileBlock(lines, bodyOut, i + 1, indent, loopType, env);
+
+		// else: 찾기
+		let hasElse = false;
+		let elseBodyStart = afterBody;
+		let j = afterBody;
+		while (j < lines.length) {
+			const s = lines[j].replace(/#.*$/, '');
+			const t = s.trim();
+			if (!t) {
+				j++;
+				continue;
+			}
+			if (getIndent(s) === indent && t === 'else:') {
+				hasElse = true;
+				elseBodyStart = j + 1;
+			}
+			break;
+		}
+
+		if (hasElse) {
+			const elseOut: string[] = [];
+			const afterElse = transpileBlock(lines, elseOut, elseBodyStart, indent, loopType, env);
+			// 조건값을 dup해 스택에 보존 → if 바디 후 BOOL_NOT으로 else 건너뜀 판단
+			out.push(condEmit);
+			out.push('자허...'); // dup 조건값 (V, V)
+			out.push('마아앙!?'); // 거짓(0)이면 else 레이블로
+			out.push(...bodyOut);
+			out.push('망!?'); // else 레이블 (스택에 V 남아있음)
+			out.push(BOOL_NOT); // V가 참(비영)이었으면 0, 거짓(영)이었으면 1
+			out.push('마아앙!?'); // 0이면(참이었으면) end 레이블로 건너뜀
+			out.push(...elseOut);
+			out.push('망!?'); // end 레이블
+			return afterElse;
+		} else {
+			out.push(condEmit);
+			out.push('마아앙!?'); // 거짓이면 end 레이블로
+			out.push(...bodyOut);
+			out.push('망!?'); // end 레이블
+			return afterBody;
+		}
 	}
 
 	// 미지원
