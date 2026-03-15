@@ -14,6 +14,8 @@ BODY:
 
 SUFFIX: `(\.)*([!?])*` — dot 0개 이상, 그 뒤 `!`/`?` 0개 이상
 
+주석: `#` 이후 같은 줄 끝까지 무시된다.
+
 ---
 
 ## 1. 숫자 토큰 (`망` / `마(아)*앙`)
@@ -91,6 +93,7 @@ dot n개 → 값 << n (비트 시프트 좌, 즉 값 × 2ⁿ) 을 push.
 상태:
 
 - 정수 스택
+- 정수 메모리 배열
 - 출력 스트림
 - 프로그램 카운터
 
@@ -101,40 +104,27 @@ dot n개 → 값 << n (비트 시프트 좌, 즉 값 × 2ⁿ) 을 push.
 ### while 루프
 
 ```text
-망!?            ; loop start label
+망!?            # loop start label
   (body)
   (조건값 push)
-  마아앙!?      ; 조건 거짓이면 loop end label로 탈출
-마앙!?          ; goto loop start
-망!?            ; loop end label
+  마아앙!?      # 조건 거짓이면 loop end label로 탈출
+마앙!?          # goto loop start
+망!?            # loop end label
 ```
 
 ### 카운터 루프 — 3부터 1까지 출력
 
 ```text
-마아아앙        ; push 3
-망!?            ; loop start label
-  자허...         ; dup
-  마아앙!?      ; 0이면 탈�
-  자허...         ; dup
-  망?           ; print number
-  마앙!         ; sub 1
-망!?            ; goto... 잠깐 마앙!? 써야함
-```
-
-아, 루프 구조 정정:
-
-```text
-마아아앙        ; push 3
-망!?            ; label 0 (loop start)
-  자허...         ; dup
-  마아앙!?      ; if 0, jump to label 1 (loop end)
-  자허...         ; dup
-  망?           ; print number
-  마앙!         ; sub 1
-마앙!?          ; goto label 0
-망!?            ; label 1 (loop end)
-자허            ; pop 0
+마아아앙        # push 3
+망!?            # label 0 (loop start)
+  자허...       # dup
+  마아앙!?      # if 0, jump to label 1 (loop end)
+  자허...       # dup
+  망?           # print number
+  마앙!         # sub 1
+마앙!?          # goto label 0
+망!?            # label 1 (loop end)
+자허            # pop 0
 ```
 
 출력: `3 2 1`
@@ -146,10 +136,10 @@ dot n개 → 값 << n (비트 시프트 좌, 즉 값 × 2ⁿ) 을 push.
 `마아앙마아아앙망!망?`
 
 ```text
-마아앙      ; push 2
-마아아앙    ; push 3
-망!         ; add → 5
-망?         ; print number
+마아앙      # push 2
+마아아앙    # push 3
+망!         # add → 5
+망?         # print number
 ```
 
 출력: `5`
@@ -161,7 +151,7 @@ dot n개 → 값 << n (비트 시프트 좌, 즉 값 × 2ⁿ) 을 push.
 ### 숫자 토큰
 
 - `망` / `마(아)*앙` — push 값
-- dot n개 — push 값 × n
+- dot n개 — push 값 << n (비트 시프트)
 
 ### 산술 (`!`)
 
@@ -184,15 +174,21 @@ dot n개 → 값 << n (비트 시프트 좌, 즉 값 × 2ⁿ) 을 push.
 - `마앙!?` — goto
 - `마아앙!?` — if_false_jump
 
-### 스택 (`자허`)
+### 스택 / 메모리 (`자허`)
 
 - `자허` — pop
+- `자허.` — load
+- `자허..` — store
 - `자허...` — dup
 - `자허!` — swap
 - `자허?` — over
+
+### 주석
+
+- `# ...` — 줄 끝까지 무시
 
 ---
 
 ## 7. 한 줄 요약
 
-`망`/`마(아)*앙`의 `아` 개수로 값을 표현하고, dot suffix로 비트 시프트 push, suffix(`!` `?` `!?`)로 산술(add/sub/mul/div/mod/shl/pow)·출력·제어를 수행하며, `자허` 4종으로 스택을 조작하는 마아앙 스타일 스택 언어.
+`망`/`마(아)*앙`의 `아` 개수로 값을 표현하고, dot suffix로 비트 시프트 push, suffix(`!` `?` `!?`)로 산술(add/sub/mul/div/mod/shl/pow)·출력·제어를 수행하며, `자허` 6종으로 스택·메모리를 조작하는 마아앙 스타일 스택 언어.
