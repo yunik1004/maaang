@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { run } from '$lib/interpreter';
 	import { transpile } from '$lib/transpiler';
+	import maaangImg from '$lib/assets/maaang.png';
 
 	type Tab = 'interpreter' | 'transpiler';
 	let tab = $state<Tab>('interpreter');
@@ -64,7 +65,7 @@
 	}
 </script>
 
-<div class="flex min-h-[calc(100vh-57px)] flex-col">
+<div class="flex h-[calc(100vh-57px)] flex-col overflow-y-auto">
 	<!-- 탭 바 -->
 	<div class="flex border-b border-primary/20 bg-gradient-to-r from-primary/10 to-transparent">
 		{#each (['interpreter', 'transpiler'] as Tab[]) as t}
@@ -82,8 +83,8 @@
 
 	<!-- Interpreter -->
 	{#if tab === 'interpreter'}
-		<div class="flex flex-1 flex-col">
-			<div class="flex flex-1 flex-col border-b border-primary/20 min-h-[200px]">
+		<div class="flex flex-1 flex-col min-h-0">
+			<div class="flex flex-1 flex-col border-b border-primary/20 min-h-0 overflow-hidden">
 				<div
 					class="flex items-center justify-between border-b border-primary/20 bg-gradient-to-r from-primary/10 to-transparent px-4 py-1.5"
 				>
@@ -107,7 +108,7 @@
 					autocapitalize="off"
 				></textarea>
 			</div>
-			<div class="flex flex-1 flex-col min-h-[150px]">
+			<div class="flex flex-1 flex-col min-h-0 overflow-hidden">
 				<div
 					class="flex items-center justify-between border-b border-primary/20 bg-gradient-to-r from-primary/10 to-transparent px-4 py-1.5"
 				>
@@ -121,7 +122,9 @@
 						</button>
 					{/if}
 				</div>
-				<div class="flex-1 overflow-auto bg-base-100 p-6 font-mono text-sm leading-relaxed">
+				<div class="relative flex-1 overflow-hidden bg-base-100">
+					<img src={maaangImg} alt="" aria-hidden="true" class="pointer-events-none absolute inset-y-0 right-0 h-full w-auto object-contain opacity-20" />
+					<div class="relative h-full overflow-auto p-6 font-mono text-sm leading-relaxed">
 					{#if interpOutput === null}
 						<p class="text-xs tracking-widest text-base-content/20 uppercase">
 							— 실행 결과가 여기에 표시됩니다 —
@@ -131,14 +134,15 @@
 					{:else}
 						<pre class="whitespace-pre-wrap text-base-content">{interpOutput}</pre>
 					{/if}
+					</div>
 				</div>
 			</div>
 		</div>
 
 	<!-- Transpiler -->
 	{:else}
-		<div class="flex flex-1 flex-col">
-			<div class="flex flex-1 flex-col border-b border-primary/20 min-h-[200px]">
+		<div class="flex flex-1 flex-col min-h-0">
+			<div class="flex flex-1 flex-col border-b border-primary/20 min-h-0 overflow-hidden">
 				<div
 					class="flex items-center justify-between border-b border-primary/20 bg-gradient-to-r from-primary/10 to-transparent px-4 py-1.5"
 				>
@@ -162,7 +166,7 @@
 					autocapitalize="off"
 				></textarea>
 			</div>
-			<div class="flex flex-1 flex-col min-h-[150px]">
+			<div class="flex flex-1 flex-col min-h-0 overflow-hidden">
 				<div
 					class="flex items-center justify-between border-b border-primary/20 bg-gradient-to-r from-primary/10 to-transparent px-4 py-1.5"
 				>
@@ -176,7 +180,9 @@
 						</button>
 					{/if}
 				</div>
-				<div class="flex-1 overflow-auto bg-base-100 p-6 font-mono text-sm leading-relaxed">
+				<div class="relative flex-1 overflow-hidden bg-base-100">
+					<img src={maaangImg} alt="" aria-hidden="true" class="pointer-events-none absolute inset-y-0 right-0 h-full w-auto object-contain opacity-20" />
+					<div class="relative h-full overflow-auto p-6 font-mono text-sm leading-relaxed">
 					{#if transpileOutput === null}
 						<p class="text-xs tracking-widest text-base-content/20 uppercase">
 							— 변환 결과가 여기에 표시됩니다 —
@@ -186,6 +192,7 @@
 					{:else}
 						<pre class="whitespace-pre-wrap text-base-content">{transpileOutput}</pre>
 					{/if}
+					</div>
 				</div>
 			</div>
 		</div>

@@ -41,6 +41,7 @@ export const interpRules: Entry[] = [
 export const transpilerRules: Entry[] = [
 	{ kind: 'section', title: '지원 Python 문법' },
 	{ kind: 'rule', title: '문자열 출력', example: 'print("hello")' },
+	{ kind: 'rule', title: '줄바꿈 출력', example: 'print("hello\\n")' },
 	{ kind: 'rule', title: '유니코드 문자 출력', example: 'print(chr(44032))' },
 	{ kind: 'rule', title: '수식 출력  (+  -  *  //  %)', example: 'print(1 + 2 * 3)' },
 	{ kind: 'rule', title: '변수 대입 / 재대입', example: 'x = 10\nx = x + 1' },

@@ -420,5 +420,5 @@ export function transpile(code: string): string {
 	const lines = code.split('\n');
 	const out: string[] = [];
 	transpileBlock(lines, out, 0, -1, null, { vars: new Map(), nextAddr: 0, strings: new Map() });
-	return out.join('\n');
+	return out.join(' ');
 }
