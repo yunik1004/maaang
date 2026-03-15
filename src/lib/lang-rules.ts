@@ -35,7 +35,7 @@ export const interpRules: Entry[] = [
 	{ kind: 'rule', title: 'store  (pop addr, pop val → mem[addr]=val)', example: '자허..' },
 
 	{ kind: 'section', title: '주석' },
-	{ kind: 'rule', title: 'comment', example: '# 이건 주석' },
+	{ kind: 'rule', title: 'comment', example: '# 이건 주석' }
 ];
 
 export const transpilerRules: Entry[] = [
@@ -48,5 +48,5 @@ export const transpilerRules: Entry[] = [
 	{ kind: 'rule', title: '문자열 변수', example: 'msg = "hi"\nprint(msg)' },
 	{ kind: 'rule', title: 'for 루프', example: 'for i in range(5):\n  print(i)' },
 	{ kind: 'rule', title: 'while 루프', example: 'while True:\n  ...' },
-	{ kind: 'rule', title: 'break', example: 'while True:\n  break' },
+	{ kind: 'rule', title: 'break', example: 'while True:\n  break' }
 ];

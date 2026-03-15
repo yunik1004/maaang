@@ -15,7 +15,10 @@ function bestSingleToken(n: number): string | null {
 	// dots 없이: n ≤ MAX_BODY
 	if (n >= 1 && n <= MAX_BODY) {
 		const s = `마${'아'.repeat(n - 1)}앙`;
-		if (s.length < bestLen) { bestLen = s.length; best = s; }
+		if (s.length < bestLen) {
+			bestLen = s.length;
+			best = s;
+		}
 	}
 
 	// dots 있음: body << dots = n → body = n >> dots, n 이 2^dots 의 배수여야 함
@@ -23,8 +26,11 @@ function bestSingleToken(n: number): string | null {
 		if ((n & ((1 << d) - 1)) !== 0) continue; // 2^d 의 배수가 아님
 		const body = n >> d;
 		if (body >= 1 && body <= MAX_BODY) {
-			const s = `마${'아'.repeat(body - 1)}앙${'.' .repeat(d)}`;
-			if (s.length < bestLen) { bestLen = s.length; best = s; }
+			const s = `마${'아'.repeat(body - 1)}앙${'.'.repeat(d)}`;
+			if (s.length < bestLen) {
+				bestLen = s.length;
+				best = s;
+			}
 		}
 	}
 
@@ -46,7 +52,11 @@ function pushNumberAdditive(n: number): string {
 		let chunkToken = '';
 		for (let a = Math.min(rem, MAX_BODY << MAX_DOTS); a >= 1; a--) {
 			const t = bestSingleToken(a);
-			if (t) { chunk = a; chunkToken = t; break; }
+			if (t) {
+				chunk = a;
+				chunkToken = t;
+				break;
+			}
 		}
 		const count = Math.floor(rem / chunk);
 		if (count > 1) {
@@ -73,7 +83,10 @@ function pushNumber(n: number): string {
 
 	// 단일 토큰
 	const single = bestSingleToken(n);
-	if (single) { numCache.set(n, single); return single; }
+	if (single) {
+		numCache.set(n, single);
+		return single;
+	}
 
 	// 덧셈 분해 (항상 가능한 fallback)
 	let best = pushNumberAdditive(n);
@@ -88,7 +101,10 @@ function pushNumber(n: number): string {
 			const sb = pushNumber(b);
 			const candidate = `${sa} ${sb} 마아앙!`;
 			const cost = tokenCount(candidate);
-			if (cost < bestCost) { bestCost = cost; best = candidate; }
+			if (cost < bestCost) {
+				bestCost = cost;
+				best = candidate;
+			}
 		}
 	}
 
@@ -101,14 +117,20 @@ function pushNumber(n: number): string {
 				let overflow = false;
 				for (let i = 0; i < exp; i++) {
 					p *= base;
-					if (p > n) { overflow = true; break; }
+					if (p > n) {
+						overflow = true;
+						break;
+					}
 				}
 				if (!overflow && p === n) {
 					const sb = pushNumber(base);
 					const se = pushNumber(exp);
 					const candidate = `${sb} ${se} 마아아아아아앙!`;
 					const cost = tokenCount(candidate);
-					if (cost < bestCost) { bestCost = cost; best = candidate; }
+					if (cost < bestCost) {
+						bestCost = cost;
+						best = candidate;
+					}
 				}
 			}
 		}
@@ -153,7 +175,10 @@ function storeVar(env: VarEnv, name: string): string {
 
 class ExprParser {
 	private pos = 0;
-	constructor(private input: string, private env: VarEnv = { vars: new Map(), nextAddr: 0, strings: new Map() }) {
+	constructor(
+		private input: string,
+		private env: VarEnv = { vars: new Map(), nextAddr: 0, strings: new Map() }
+	) {
 		this.input = input.trim();
 	}
 
@@ -260,12 +285,9 @@ function transpilePrint(arg: string, out: string[], env: VarEnv) {
 	// 문자열 리터럴
 	const strMatch = arg.match(/^(['"])(.*)\1$/);
 	if (strMatch) {
-		const str = strMatch[2]
-			.replace(/\\n/g, '\n')
-			.replace(/\\t/g, '\t')
-			.replace(/\\\\/g, '\\');
+		const str = strMatch[2].replace(/\\n/g, '\n').replace(/\\t/g, '\t').replace(/\\\\/g, '\\');
 		const chars = [...str];
-		const codepoints = chars.map(ch => ch.codePointAt(0)!);
+		const codepoints = chars.map((ch) => ch.codePointAt(0)!);
 
 		let prevCpOnStack = false;
 		let prevCp = 0;
@@ -319,14 +341,24 @@ function getIndent(line: string): number {
 
 type LoopType = 'for' | 'while' | null;
 
-function transpileBlock(lines: string[], out: string[], start: number, parentIndent: number, loopType: LoopType = null, env: VarEnv = { vars: new Map(), nextAddr: 0, strings: new Map() }): number {
+function transpileBlock(
+	lines: string[],
+	out: string[],
+	start: number,
+	parentIndent: number,
+	loopType: LoopType = null,
+	env: VarEnv = { vars: new Map(), nextAddr: 0, strings: new Map() }
+): number {
 	let i = start;
 	while (i < lines.length) {
 		const raw = lines[i];
 		const stripped = raw.replace(/#.*$/, '');
 		const trimmed = stripped.trim();
 
-		if (!trimmed) { i++; continue; }
+		if (!trimmed) {
+			i++;
+			continue;
+		}
 
 		const indent = getIndent(stripped);
 		if (indent <= parentIndent) break;
@@ -360,7 +392,10 @@ function transpileStatement(
 		// 문자열 리터럴이면 strings 맵에 저장 (런타임 메모리 불필요)
 		const strLiteral = rhs.match(/^(['"])(.*)\1$/s);
 		if (strLiteral) {
-			env.strings.set(name, strLiteral[2].replace(/\\n/g, '\n').replace(/\\t/g, '\t').replace(/\\\\/g, '\\'));
+			env.strings.set(
+				name,
+				strLiteral[2].replace(/\\n/g, '\n').replace(/\\t/g, '\t').replace(/\\\\/g, '\\')
+			);
 			return i + 1;
 		}
 		const exprTokens = transpileExpr(rhs, env);

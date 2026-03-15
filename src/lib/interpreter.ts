@@ -192,13 +192,26 @@ export function run(code: string): string {
 				const b = stack.pop()!;
 				const a = stack.pop()!;
 				switch (value) {
-					case 0: stack.push(a + b); break;                                    // 망!  add
-					case 1: stack.push(a - b); break;                                    // 마앙!  sub
-					case 2: stack.push(a * b); break;                                    // 마아앙!  mul
-					case 3: stack.push(b !== 0 ? Math.trunc(a / b) : 0); break;         // 마아아앙!  div
-					case 4: stack.push(b !== 0 ? ((a % b) + b) % b : 0); break;         // 마아아아앙!  mod
-					case 5: stack.push(a << b); break;                                   // 마아아아아앙!  shl
-					case 6: {                                                             // 마아아아아아앙!  pow
+					case 0:
+						stack.push(a + b);
+						break; // 망!  add
+					case 1:
+						stack.push(a - b);
+						break; // 마앙!  sub
+					case 2:
+						stack.push(a * b);
+						break; // 마아앙!  mul
+					case 3:
+						stack.push(b !== 0 ? Math.trunc(a / b) : 0);
+						break; // 마아아앙!  div
+					case 4:
+						stack.push(b !== 0 ? ((a % b) + b) % b : 0);
+						break; // 마아아아앙!  mod
+					case 5:
+						stack.push(a << b);
+						break; // 마아아아아앙!  shl
+					case 6: {
+						// 마아아아아아앙!  pow
 						let r = 1;
 						for (let i = 0; i < b; i++) r *= a;
 						stack.push(r);
@@ -215,10 +228,16 @@ export function run(code: string): string {
 			if (stack.length > 0) {
 				const top = stack.pop()!;
 				switch (value) {
-					case 0: output.push(String(top)); break;                             // 망?  print number
-					case 1: {                                                             // 마앙?  print char
-						try { output.push(String.fromCodePoint(top)); }
-						catch { output.push('?'); }
+					case 0:
+						output.push(String(top));
+						break; // 망?  print number
+					case 1: {
+						// 마앙?  print char
+						try {
+							output.push(String.fromCodePoint(top));
+						} catch {
+							output.push('?');
+						}
 						break;
 					}
 				}

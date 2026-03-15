@@ -7,7 +7,8 @@
 	let tab = $state<Tab>('interpreter');
 
 	// interpreter
-	let interpCode = $state(`마아아아아앙..... 마아아앙 마아아앙..... 마아아앙 망! 마아앙! 마아앙! 마아아아아앙... 망! 자허... 마앙?
+	let interpCode =
+		$state(`마아아아아앙..... 마아아앙 마아아앙..... 마아아앙 망! 마아앙! 마아앙! 마아아아아앙... 망! 자허... 마앙?
 마아아앙 마아아아아앙..... 마아아앙. 마아앙! 마아아아아앙.. 망! 마아앙! 망! 자허... 마앙?
 마아아아아앙.. 마앙 망! 망! 마앙?
 `);
@@ -68,12 +69,10 @@
 <div class="flex h-[calc(100vh-57px)] flex-col overflow-y-auto">
 	<!-- 탭 바 -->
 	<div class="flex border-b border-primary/20 bg-gradient-to-r from-primary/10 to-transparent">
-		{#each (['interpreter', 'transpiler'] as Tab[]) as t}
+		{#each ['interpreter', 'transpiler'] as Tab[] as t (t)}
 			<button
 				class="px-6 py-2 text-xs tracking-widest uppercase transition-colors
-					{tab === t
-					? 'border-b-2 border-primary text-primary'
-					: 'text-base-content/40 hover:text-primary'}"
+					{tab === t ? 'border-b-2 border-primary text-primary' : 'text-base-content/40 hover:text-primary'}"
 				onclick={() => (tab = t)}
 			>
 				{t}
@@ -83,8 +82,8 @@
 
 	<!-- Interpreter -->
 	{#if tab === 'interpreter'}
-		<div class="flex flex-1 flex-col min-h-0">
-			<div class="flex flex-1 flex-col border-b border-primary/20 min-h-0 overflow-hidden">
+		<div class="flex min-h-0 flex-1 flex-col">
+			<div class="flex min-h-0 flex-1 flex-col overflow-hidden border-b border-primary/20">
 				<div
 					class="flex items-center justify-between border-b border-primary/20 bg-gradient-to-r from-primary/10 to-transparent px-4 py-1.5"
 				>
@@ -92,7 +91,7 @@
 					<div class="flex items-center gap-3">
 						<span class="text-xs text-base-content/30">Ctrl + Enter</span>
 						<button
-							class="btn btn-xs btn-primary gap-1.5 text-xs tracking-widest uppercase"
+							class="btn gap-1.5 text-xs tracking-widest uppercase btn-xs btn-primary"
 							onclick={handleRun}
 						>
 							▶ 실행
@@ -108,7 +107,7 @@
 					autocapitalize="off"
 				></textarea>
 			</div>
-			<div class="flex flex-1 flex-col min-h-0 overflow-hidden">
+			<div class="flex min-h-0 flex-1 flex-col overflow-hidden">
 				<div
 					class="flex items-center justify-between border-b border-primary/20 bg-gradient-to-r from-primary/10 to-transparent px-4 py-1.5"
 				>
@@ -123,26 +122,31 @@
 					{/if}
 				</div>
 				<div class="relative flex-1 overflow-hidden bg-base-100">
-					<img src={maaangImg} alt="" aria-hidden="true" class="pointer-events-none absolute inset-y-0 right-0 h-full w-auto object-contain opacity-20" />
+					<img
+						src={maaangImg}
+						alt=""
+						aria-hidden="true"
+						class="pointer-events-none absolute inset-y-0 right-0 h-full w-auto object-contain opacity-20"
+					/>
 					<div class="relative h-full overflow-auto p-6 font-mono text-sm leading-relaxed">
-					{#if interpOutput === null}
-						<p class="text-xs tracking-widest text-base-content/20 uppercase">
-							— 실행 결과가 여기에 표시됩니다 —
-						</p>
-					{:else if interpOutput === ''}
-						<p class="text-xs tracking-widest text-base-content/40 uppercase">— 출력 없음 —</p>
-					{:else}
-						<pre class="whitespace-pre-wrap text-base-content">{interpOutput}</pre>
-					{/if}
+						{#if interpOutput === null}
+							<p class="text-xs tracking-widest text-base-content/20 uppercase">
+								— 실행 결과가 여기에 표시됩니다 —
+							</p>
+						{:else if interpOutput === ''}
+							<p class="text-xs tracking-widest text-base-content/40 uppercase">— 출력 없음 —</p>
+						{:else}
+							<pre class="whitespace-pre-wrap text-base-content">{interpOutput}</pre>
+						{/if}
 					</div>
 				</div>
 			</div>
 		</div>
 
-	<!-- Transpiler -->
+		<!-- Transpiler -->
 	{:else}
-		<div class="flex flex-1 flex-col min-h-0">
-			<div class="flex flex-1 flex-col border-b border-primary/20 min-h-0 overflow-hidden">
+		<div class="flex min-h-0 flex-1 flex-col">
+			<div class="flex min-h-0 flex-1 flex-col overflow-hidden border-b border-primary/20">
 				<div
 					class="flex items-center justify-between border-b border-primary/20 bg-gradient-to-r from-primary/10 to-transparent px-4 py-1.5"
 				>
@@ -150,7 +154,7 @@
 					<div class="flex items-center gap-3">
 						<span class="text-xs text-base-content/30">Ctrl + Enter</span>
 						<button
-							class="btn btn-xs btn-primary text-xs tracking-widest uppercase"
+							class="btn text-xs tracking-widest uppercase btn-xs btn-primary"
 							onclick={handleTranspile}
 						>
 							▶ 변환
@@ -166,7 +170,7 @@
 					autocapitalize="off"
 				></textarea>
 			</div>
-			<div class="flex flex-1 flex-col min-h-0 overflow-hidden">
+			<div class="flex min-h-0 flex-1 flex-col overflow-hidden">
 				<div
 					class="flex items-center justify-between border-b border-primary/20 bg-gradient-to-r from-primary/10 to-transparent px-4 py-1.5"
 				>
@@ -181,17 +185,22 @@
 					{/if}
 				</div>
 				<div class="relative flex-1 overflow-hidden bg-base-100">
-					<img src={maaangImg} alt="" aria-hidden="true" class="pointer-events-none absolute inset-y-0 right-0 h-full w-auto object-contain opacity-20" />
+					<img
+						src={maaangImg}
+						alt=""
+						aria-hidden="true"
+						class="pointer-events-none absolute inset-y-0 right-0 h-full w-auto object-contain opacity-20"
+					/>
 					<div class="relative h-full overflow-auto p-6 font-mono text-sm leading-relaxed">
-					{#if transpileOutput === null}
-						<p class="text-xs tracking-widest text-base-content/20 uppercase">
-							— 변환 결과가 여기에 표시됩니다 —
-						</p>
-					{:else if transpileOutput === ''}
-						<p class="text-xs tracking-widest text-base-content/40 uppercase">— 출력 없음 —</p>
-					{:else}
-						<pre class="whitespace-pre-wrap text-base-content">{transpileOutput}</pre>
-					{/if}
+						{#if transpileOutput === null}
+							<p class="text-xs tracking-widest text-base-content/20 uppercase">
+								— 변환 결과가 여기에 표시됩니다 —
+							</p>
+						{:else if transpileOutput === ''}
+							<p class="text-xs tracking-widest text-base-content/40 uppercase">— 출력 없음 —</p>
+						{:else}
+							<pre class="whitespace-pre-wrap text-base-content">{transpileOutput}</pre>
+						{/if}
 					</div>
 				</div>
 			</div>
