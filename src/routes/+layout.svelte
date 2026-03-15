@@ -8,6 +8,7 @@
 </script>
 
 <svelte:head>
+	<title>마아앙</title>
 	<link rel="icon" href={favicon} />
 </svelte:head>
 
