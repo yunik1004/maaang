@@ -69,32 +69,31 @@ function parseImage(image: string): Instruction {
 
 // ─── 제어 흐름 사전 계산 ──────────────────────────────────────────────────────
 
-function isLabel(inst: Instruction) {
-	return inst.body === 'number' && inst.value === 0 && inst.dots === 0 && inst.suffix === '!?';
+// dots 수가 같은 레이블끼리만 매칭 → 중첩 제어 구조 간 간섭 방지
+function isLabelOfType(inst: Instruction, d: number) {
+	return inst.body === 'number' && inst.value === 0 && inst.dots === d && inst.suffix === '!?';
 }
 
 function buildJumpMap(instructions: Instruction[]) {
-	// goto(마앙!?) → 가장 가까운 이전 망!? 위치
 	const gotoTargets = new Map<number, number>();
-	// if_false_jump(마아앙!?) → 가장 가까운 다음 망!? 위치
 	const ifFalseTargets = new Map<number, number>();
 
 	for (let i = 0; i < instructions.length; i++) {
 		const inst = instructions[i];
-		if (inst.body !== 'number' || inst.dots !== 0 || inst.suffix !== '!?') continue;
+		if (inst.body !== 'number' || inst.suffix !== '!?') continue;
 
 		if (inst.value === 1) {
-			// 마앙!? (goto): 이전 레이블 탐색
+			// 마앙(d)!? (goto): 같은 타입의 가장 가까운 이전 레이블
 			for (let j = i - 1; j >= 0; j--) {
-				if (isLabel(instructions[j])) {
+				if (isLabelOfType(instructions[j], inst.dots)) {
 					gotoTargets.set(i, j);
 					break;
 				}
 			}
 		} else if (inst.value === 2) {
-			// 마아앙!? (if_false_jump): 다음 레이블 탐색
+			// 마아앙(d)!? (if_false_jump): 같은 타입의 가장 가까운 다음 레이블
 			for (let j = i + 1; j < instructions.length; j++) {
-				if (isLabel(instructions[j])) {
+				if (isLabelOfType(instructions[j], inst.dots)) {
 					ifFalseTargets.set(i, j);
 					break;
 				}
@@ -171,8 +170,8 @@ export function run(code: string): string {
 
 		// ── 숫자 토큰 ────────────────────────────────────────────────────────
 
-		// dot suffix: push value << dots
-		if (dots > 0) {
+		// dot suffix: push value << dots (but !? suffix is always control flow)
+		if (dots > 0 && suffix !== '!?') {
 			if (suffix === '') stack.push(value << dots);
 			// dots + 다른 suffix 조합은 미정의 → 무시
 			pc++;

@@ -53,6 +53,14 @@ describe('for 루프', () => {
 	it('break로 조기 종료', () => {
 		expect(exec('for i in range(5):\n  print(i)\n  break')).toBe('0');
 	});
+	it('중첩 for: 삼각형 별', () => {
+		// for i in range(3): for j in range(i): print("*") → ** (0+1+2개)
+		expect(exec('for i in range(3):\n  for j in range(i):\n    print("*")')).toBe('***');
+	});
+	it('중첩 for: 구구단 일부', () => {
+		// 2단 2~4: 4 6 8
+		expect(exec('for i in range(3):\n  print((i + 2) * 2)')).toBe('468');
+	});
 });
 
 // ─── while 루프 ───────────────────────────────────────────────────────────────

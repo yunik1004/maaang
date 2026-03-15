@@ -155,7 +155,7 @@ function pushNumber(n: number): string {
 
 // ─── 표현식 파서 ───────────────────────────────────────────────────────────────
 
-type VarEnv = { vars: Map<string, number>; nextAddr: number; strings: Map<string, string> };
+type VarEnv = { vars: Map<string, number>; nextAddr: number; strings: Map<string, string>; nextLabel: number };
 
 function allocVar(env: VarEnv, name: string): number {
 	if (!env.vars.has(name)) env.vars.set(name, env.nextAddr++);
@@ -176,7 +176,7 @@ class ExprParser {
 	private pos = 0;
 	constructor(
 		private input: string,
-		private env: VarEnv = { vars: new Map(), nextAddr: 0, strings: new Map() }
+		private env: VarEnv = { vars: new Map(), nextAddr: 0, strings: new Map(), nextLabel: 0 }
 	) {
 		this.input = input.trim();
 	}
@@ -370,7 +370,8 @@ function transpileBlock(
 	start: number,
 	parentIndent: number,
 	loopType: LoopType = null,
-	env: VarEnv = { vars: new Map(), nextAddr: 0, strings: new Map() }
+	env: VarEnv = { vars: new Map(), nextAddr: 0, strings: new Map(), nextLabel: 0 },
+	loopLabelId: number = 0
 ): number {
 	let i = start;
 	while (i < lines.length) {
@@ -386,7 +387,7 @@ function transpileBlock(
 		const indent = getIndent(stripped);
 		if (indent <= parentIndent) break;
 
-		i = transpileStatement(lines, out, i, trimmed, indent, loopType, env);
+		i = transpileStatement(lines, out, i, trimmed, indent, loopType, env, loopLabelId);
 	}
 	return i;
 }
@@ -398,7 +399,8 @@ function transpileStatement(
 	trimmed: string,
 	indent: number,
 	loopType: LoopType = null,
-	env: VarEnv = { vars: new Map(), nextAddr: 0, strings: new Map() }
+	env: VarEnv = { vars: new Map(), nextAddr: 0, strings: new Map(), nextLabel: 0 },
+	loopLabelId: number = 0
 ): number {
 	// print(...)
 	const printMatch = trimmed.match(/^print\((.+)\)$/s);
@@ -430,7 +432,8 @@ function transpileStatement(
 	// break
 	if (trimmed === 'break') {
 		if (loopType === 'for') out.push('자허'); // 루프 카운터 pop
-		out.push('망 마아앙!?');
+		const BL = '.'.repeat(loopLabelId);
+		out.push(`망 마아앙${BL}!?`);
 		return i + 1;
 	}
 
@@ -440,30 +443,34 @@ function transpileStatement(
 		const varName = forMatch[1];
 		const rangeTokens = transpileExpr(forMatch[2].trim(), env);
 		allocVar(env, varName);
+		const fid = env.nextLabel++;
+		const FL = '.'.repeat(fid);
 		// i = 0 초기화
 		out.push('망 ' + storeVar(env, varName));
 		// 루프 카운터 push
 		out.push(rangeTokens.join(' '));
-		out.push('망!?');
+		out.push(`망${FL}!?`);
 		out.push('자허...');
-		out.push('마아앙!?');
+		out.push(`마아앙${FL}!?`);
 		// 바디 (var 사용 가능)
-		const afterBody = transpileBlock(lines, out, i + 1, indent, 'for', env);
+		const afterBody = transpileBlock(lines, out, i + 1, indent, 'for', env, fid);
 		// 카운터 감소 및 var 증가
 		out.push('마앙 마앙!');
 		out.push(loadVar(env, varName).join(' ') + ' 마앙 망! ' + storeVar(env, varName));
-		out.push('마앙!?');
-		out.push('망!?');
+		out.push(`마앙${FL}!?`);
+		out.push(`망${FL}!?`);
 		out.push('자허');
 		return afterBody;
 	}
 
 	// while True:
 	if (trimmed === 'while True:') {
-		out.push('망!?');
-		const afterBody = transpileBlock(lines, out, i + 1, indent, 'while', env);
-		out.push('마앙!?');
-		out.push('망!?');
+		const wid = env.nextLabel++;
+		const WL = '.'.repeat(wid);
+		out.push(`망${WL}!?`);
+		const afterBody = transpileBlock(lines, out, i + 1, indent, 'while', env, wid);
+		out.push(`마앙${WL}!?`);
+		out.push(`망${WL}!?`);
 		return afterBody;
 	}
 
@@ -472,10 +479,12 @@ function transpileStatement(
 	if (ifMatch) {
 		const { tokens: condTokens, inverted } = parseCondition(ifMatch[1].trim(), env);
 		const condEmit = inverted ? condTokens.join(' ') + ' ' + BOOL_NOT : condTokens.join(' ');
+		const iid = env.nextLabel++;
+		const IL = '.'.repeat(iid);
 
-		// 바디 먼저 임시 배열에 트랜스파일
+		// 바디 먼저 임시 배열에 트랜스파일 (break는 loopLabelId 유지)
 		const bodyOut: string[] = [];
-		const afterBody = transpileBlock(lines, bodyOut, i + 1, indent, loopType, env);
+		const afterBody = transpileBlock(lines, bodyOut, i + 1, indent, loopType, env, loopLabelId);
 
 		// else: 찾기
 		let hasElse = false;
@@ -497,23 +506,23 @@ function transpileStatement(
 
 		if (hasElse) {
 			const elseOut: string[] = [];
-			const afterElse = transpileBlock(lines, elseOut, elseBodyStart, indent, loopType, env);
+			const afterElse = transpileBlock(lines, elseOut, elseBodyStart, indent, loopType, env, loopLabelId);
 			// 조건값을 dup해 스택에 보존 → if 바디 후 BOOL_NOT으로 else 건너뜀 판단
 			out.push(condEmit);
 			out.push('자허...'); // dup 조건값 (V, V)
-			out.push('마아앙!?'); // 거짓(0)이면 else 레이블로
+			out.push(`마아앙${IL}!?`); // 거짓(0)이면 else 레이블로
 			out.push(...bodyOut);
-			out.push('망!?'); // else 레이블 (스택에 V 남아있음)
+			out.push(`망${IL}!?`); // else 레이블 (스택에 V 남아있음)
 			out.push(BOOL_NOT); // V가 참(비영)이었으면 0, 거짓(영)이었으면 1
-			out.push('마아앙!?'); // 0이면(참이었으면) end 레이블로 건너뜀
+			out.push(`마아앙${IL}!?`); // 0이면(참이었으면) end 레이블로 건너뜀
 			out.push(...elseOut);
-			out.push('망!?'); // end 레이블
+			out.push(`망${IL}!?`); // end 레이블
 			return afterElse;
 		} else {
 			out.push(condEmit);
-			out.push('마아앙!?'); // 거짓이면 end 레이블로
+			out.push(`마아앙${IL}!?`); // 거짓이면 end 레이블로
 			out.push(...bodyOut);
-			out.push('망!?'); // end 레이블
+			out.push(`망${IL}!?`); // end 레이블
 			return afterBody;
 		}
 	}
@@ -528,6 +537,6 @@ function transpileStatement(
 export function transpile(code: string): string {
 	const lines = code.split('\n');
 	const out: string[] = [];
-	transpileBlock(lines, out, 0, -1, null, { vars: new Map(), nextAddr: 0, strings: new Map() });
+	transpileBlock(lines, out, 0, -1, null, { vars: new Map(), nextAddr: 0, strings: new Map(), nextLabel: 0 });
 	return out.join(' ');
 }
