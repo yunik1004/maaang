@@ -1,42 +1,198 @@
-# sv
+# 마아앙 언어
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+## 0. 기본 원칙
 
-## Creating a project
+프로그램은 토큰들의 연속이다. 공백은 무시된다.
 
-If you're seeing this, you've probably already done this step. Congrats!
+토큰 형태: `BODY + SUFFIX?`
 
-```sh
-# create a new project
-npx sv create my-app
+BODY:
+
+- `망`
+- `마(아)*앙`
+- `자허`
+
+SUFFIX: `(\.)*([!?])*` — dot 0개 이상, 그 뒤 `!`/`?` 0개 이상
+
+---
+
+## 1. 숫자 토큰 (`망` / `마(아)*앙`)
+
+`아` 개수 k → 값 k+1. `망` → 값 0.
+
+### 1-1. suffix 없음 — push
+
+| 토큰 | 값 |
+| ------ | ---- |
+| 망 | 0 |
+| 마앙 | 1 |
+| 마아앙 | 2 |
+| 마아아앙 | 3 |
+| 마(아×k)앙 | k+1 |
+
+### 1-2. dot suffix — push << dot 개수
+
+dot n개 → 값 << n (비트 시프트 좌, 즉 값 × 2ⁿ) 을 push.
+
+| 예시 | 계산 | 결과 |
+| ------ | ---- | ---- |
+| 마아앙. | 2<<1 | 4 |
+| 마아앙.. | 2<<2 | 8 |
+| 마아앙.... | 2<<4 | 32 |
+| 마앙..... | 1<<5 | 32 |
+| 마아아아아앙..... | 5<<5 | 160 |
+
+### 1-3. `!` suffix — 산술
+
+이항 연산: pop b → pop a → push (a op b). 먼저 push한 값이 왼쪽 피연산자.
+
+| 토큰 | 동작 |
+| ------ | ------ |
+| 망! | add — a + b |
+| 마앙! | sub — a - b |
+| 마아앙! | mul — a × b |
+| 마아아앙! | div — a ÷ b |
+| 마아아아앙! | mod — a % b |
+| 마아아아아앙! | shl — a << b |
+| 마아아아아아앙! | pow — aᵇ |
+
+### 1-4. `?` suffix — 출력
+
+| 토큰 | 동작 |
+| ------ | ------ |
+| 망? | top을 정수로 출력 (pop) |
+| 마앙? | top을 유니코드 문자로 출력 (pop) |
+
+### 1-5. `!?` suffix — 제어 흐름
+
+| 토큰 | 동작 |
+| ------ | ------ |
+| 망!? | label — 현재 위치를 라벨로 표시 |
+| 마앙!? | goto — 가장 가까운 이전 `망!?`로 점프 |
+| 마아앙!? | if_false_jump — pop top; 0이면 다음 `망!?`로 점프 |
+
+---
+
+## 2. `자허` 토큰 — 스택 / 메모리 조작
+
+| 토큰 | 동작 |
+| ------ | ------ |
+| 자허 | pop — top 제거 |
+| 자허. | load — pop addr → push mem[addr] |
+| 자허.. | store — pop addr, pop val → mem[addr] = val |
+| 자허... | dup — top 복제 |
+| 자허! | swap — top 두 개 교환 |
+| 자허? | over — 두 번째 값을 top에 복사 |
+
+---
+
+## 3. 실행 모델
+
+상태:
+
+- 정수 스택
+- 출력 스트림
+- 프로그램 카운터
+
+---
+
+## 4. 제어 구조 패턴
+
+### while 루프
+
+```text
+망!?            ; loop start label
+  (body)
+  (조건값 push)
+  마아앙!?      ; 조건 거짓이면 loop end label로 탈출
+마앙!?          ; goto loop start
+망!?            ; loop end label
 ```
 
-To recreate this project with the same configuration:
+### 카운터 루프 — 3부터 1까지 출력
 
-```sh
-# recreate this project
-npx sv@0.12.7 create --template minimal --types ts --add prettier eslint tailwindcss="plugins:typography" sveltekit-adapter="adapter:static" --install npm maaang
+```text
+마아아앙        ; push 3
+망!?            ; loop start label
+  자허...         ; dup
+  마아앙!?      ; 0이면 탈�
+  자허...         ; dup
+  망?           ; print number
+  마앙!         ; sub 1
+망!?            ; goto... 잠깐 마앙!? 써야함
 ```
 
-## Developing
+아, 루프 구조 정정:
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
-
-```sh
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
+```text
+마아아앙        ; push 3
+망!?            ; label 0 (loop start)
+  자허...         ; dup
+  마아앙!?      ; if 0, jump to label 1 (loop end)
+  자허...         ; dup
+  망?           ; print number
+  마앙!         ; sub 1
+마앙!?          ; goto label 0
+망!?            ; label 1 (loop end)
+자허            ; pop 0
 ```
 
-## Building
+출력: `3 2 1`
 
-To create a production version of your app:
+---
 
-```sh
-npm run build
+## 5. 파싱 예제
+
+`마아앙마아아앙망!망?`
+
+```text
+마아앙      ; push 2
+마아아앙    ; push 3
+망!         ; add → 5
+망?         ; print number
 ```
 
-You can preview the production build with `npm run preview`.
+출력: `5`
 
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+---
+
+## 6. 명령 전체 목록
+
+### 숫자 토큰
+
+- `망` / `마(아)*앙` — push 값
+- dot n개 — push 값 × n
+
+### 산술 (`!`)
+
+- `망!` — add
+- `마앙!` — sub
+- `마아앙!` — mul
+- `마아아앙!` — div
+- `마아아아앙!` — mod
+- `마아아아아앙!` — shl
+- `마아아아아아앙!` — pow
+
+### 출력 (`?`)
+
+- `망?` — print number
+- `마앙?` — print char
+
+### 제어 (`!?`)
+
+- `망!?` — label
+- `마앙!?` — goto
+- `마아앙!?` — if_false_jump
+
+### 스택 (`자허`)
+
+- `자허` — pop
+- `자허...` — dup
+- `자허!` — swap
+- `자허?` — over
+
+---
+
+## 7. 한 줄 요약
+
+`망`/`마(아)*앙`의 `아` 개수로 값을 표현하고, dot suffix로 비트 시프트 push, suffix(`!` `?` `!?`)로 산술(add/sub/mul/div/mod/shl/pow)·출력·제어를 수행하며, `자허` 4종으로 스택을 조작하는 마아앙 스타일 스택 언어.

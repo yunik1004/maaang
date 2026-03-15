@@ -28,12 +28,6 @@
 
 		<div class="navbar-end items-center gap-3">
 			<LangTooltip />
-			<a
-				href={resolve('/transpile')}
-				class="text-xs tracking-widest text-base-content/50 uppercase transition-colors hover:text-primary"
-			>
-				Transpile
-			</a>
 		</div>
 	</div>
 
