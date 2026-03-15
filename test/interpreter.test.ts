@@ -101,6 +101,38 @@ describe('제어 흐름', () => {
 	});
 });
 
+// ─── 타입 레이블 (typed labels) ───────────────────────────────────────────────
+
+describe('타입 레이블', () => {
+	it('망.!? (d=1 label) 은 런타임 no-op', () => expect(run('마아앙 망.!? 망?')).toBe('2'));
+
+	it('마아앙.!? (d=1 if_false_jump): 0이면 d=1 label로 점프, d=0 label 무시', () => {
+		// push 0 → if_false_jump(d=1) → 망!?(d=0) 무시 → 망.!?(d=1) 로 점프 → print 3
+		expect(run('망 마아앙.!? 마앙 망? 망!? 마아앙 망? 망.!? 마아아앙 망?')).toBe('3');
+	});
+
+	it('마아앙.!? (d=1 if_false_jump): 비영이면 건너뛰지 않음', () => {
+		// push 1 → if_false_jump(d=1) 통과 → print 1, print 2, print 3
+		expect(run('마앙 마아앙.!? 마앙 망? 망!? 마아앙 망? 망.!? 마아아앙 망?')).toBe('123');
+	});
+
+	it('마앙.!? (d=1 goto): d=0 label 무시, d=1 label로만 점프', () => {
+		// 망.!?(d=1 start) print 1, 마앙.!?(d=1 goto) → 무한루프 방지를 위해 break 조건 포함
+		// push 2, loop: print, sub 1, dup, if 0 exit(d=1), goto(d=1)
+		expect(run('마아앙 망.!? 자허... 망? 마앙 마앙! 자허... 마아앙.!? 마앙.!? 망.!? 자허')).toBe(
+			'21'
+		);
+	});
+
+	it('d=0과 d=1 레이블 혼재: 서로 간섭 없음', () => {
+		// push 1 (outer condition), 마아앙!?(d=0) pass
+		//   push 0 (inner condition), 마아앙.!?(d=1) skip → 망.!?(d=1) 로 점프
+		//   print 3
+		// 망!?(d=0 end)
+		expect(run('마앙 마아앙!? 망 마아앙.!? 마앙 망? 망.!? 마아아앙 망? 망!?')).toBe('3');
+	});
+});
+
 // ─── 주석 ─────────────────────────────────────────────────────────────────────
 
 describe('주석', () => {

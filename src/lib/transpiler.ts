@@ -155,7 +155,12 @@ function pushNumber(n: number): string {
 
 // ─── 표현식 파서 ───────────────────────────────────────────────────────────────
 
-type VarEnv = { vars: Map<string, number>; nextAddr: number; strings: Map<string, string>; nextLabel: number };
+type VarEnv = {
+	vars: Map<string, number>;
+	nextAddr: number;
+	strings: Map<string, string>;
+	nextLabel: number;
+};
 
 function allocVar(env: VarEnv, name: string): number {
 	if (!env.vars.has(name)) env.vars.set(name, env.nextAddr++);
@@ -506,7 +511,15 @@ function transpileStatement(
 
 		if (hasElse) {
 			const elseOut: string[] = [];
-			const afterElse = transpileBlock(lines, elseOut, elseBodyStart, indent, loopType, env, loopLabelId);
+			const afterElse = transpileBlock(
+				lines,
+				elseOut,
+				elseBodyStart,
+				indent,
+				loopType,
+				env,
+				loopLabelId
+			);
 			// 조건값을 dup해 스택에 보존 → if 바디 후 BOOL_NOT으로 else 건너뜀 판단
 			out.push(condEmit);
 			out.push('자허...'); // dup 조건값 (V, V)
@@ -537,6 +550,11 @@ function transpileStatement(
 export function transpile(code: string): string {
 	const lines = code.split('\n');
 	const out: string[] = [];
-	transpileBlock(lines, out, 0, -1, null, { vars: new Map(), nextAddr: 0, strings: new Map(), nextLabel: 0 });
+	transpileBlock(lines, out, 0, -1, null, {
+		vars: new Map(),
+		nextAddr: 0,
+		strings: new Map(),
+		nextLabel: 0
+	});
 	return out.join(' ');
 }

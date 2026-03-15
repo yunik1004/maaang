@@ -22,9 +22,17 @@ export const interpRules: Entry[] = [
 	{ kind: 'rule', title: 'print char (unicode)', example: '마앙?' },
 
 	{ kind: 'section', title: '제어 흐름' },
-	{ kind: 'rule', title: 'label', example: '망!?' },
-	{ kind: 'rule', title: 'goto  (가장 가까운 이전 label)', example: '마앙!?' },
-	{ kind: 'rule', title: 'if 0, jump  (가장 가까운 다음 label)', example: '마아앙!?' },
+	{ kind: 'rule', title: 'label  (dot 수 = 타입 d)', example: '망!? │ 망.!? │ 망..!?' },
+	{
+		kind: 'rule',
+		title: 'goto  (같은 타입의 가장 가까운 이전 label)',
+		example: '마앙!? │ 마앙.!? │ 마앙..!?'
+	},
+	{
+		kind: 'rule',
+		title: 'if 0, jump  (같은 타입의 가장 가까운 다음 label)',
+		example: '마아앙!? │ 마아앙.!? │ 마아앙..!?'
+	},
 
 	{ kind: 'section', title: '스택 / 메모리' },
 	{ kind: 'rule', title: 'pop', example: '자허' },
@@ -47,6 +55,11 @@ export const transpilerRules: Entry[] = [
 	{ kind: 'rule', title: '변수 대입 / 재대입', example: 'x = 10\nx = x + 1' },
 	{ kind: 'rule', title: '문자열 변수', example: 'msg = "hi"\nprint(msg)' },
 	{ kind: 'rule', title: 'for 루프', example: 'for i in range(5):\n  print(i)' },
+	{
+		kind: 'rule',
+		title: '중첩 for 루프',
+		example: 'for i in range(3):\n  for j in range(i):\n    print("*")'
+	},
 	{ kind: 'rule', title: 'while 루프', example: 'while True:\n  ...' },
 	{ kind: 'rule', title: 'break', example: 'while True:\n  break' },
 	{

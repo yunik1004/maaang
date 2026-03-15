@@ -67,11 +67,15 @@ dot n개 → 값 << n (비트 시프트 좌, 즉 값 × 2ⁿ) 을 push.
 
 ### 1-5. `!?` suffix — 제어 흐름
 
-| 토큰     | 동작                                              |
-| -------- | ------------------------------------------------- |
-| 망!?     | label — 현재 위치를 라벨로 표시                   |
-| 마앙!?   | goto — 가장 가까운 이전 `망!?`로 점프             |
-| 마아앙!? | if_false_jump — pop top; 0이면 다음 `망!?`로 점프 |
+dot 개수 d가 레이블 **타입**을 결정한다. goto/if_false_jump는 **같은 dot 수**의 레이블만 찾는다.
+
+| 토큰        | 동작                                                                               |
+| ----------- | ---------------------------------------------------------------------------------- |
+| 망(d)!?     | label — dot d개짜리 레이블 표시 (런타임 no-op)                                     |
+| 마앙(d)!?   | goto — 같은 dot 수(d)의 가장 가까운 **이전** 레이블로 점프                         |
+| 마아앙(d)!? | if_false_jump — pop top; 0이면 같은 dot 수(d)의 가장 가까운 **다음** 레이블로 점프 |
+
+예: `망!?` (d=0), `망.!?` (d=1), `망..!?` (d=2) — 서로 다른 타입이므로 중첩 제어 구조끼리 간섭하지 않는다.
 
 ---
 
@@ -101,33 +105,96 @@ dot n개 → 값 << n (비트 시프트 좌, 즉 값 × 2ⁿ) 을 push.
 
 ## 4. 제어 구조 패턴
 
+각 제어 구조는 고유한 dot 수(타입 d)를 할당받아 서로 다른 레이블 타입을 사용한다.
+아래 예시에서 `(d)`는 해당 구조의 dot 수 표기.
+
 ### while 루프
 
 ```text
-망!?            # loop start label
+망(d)!?           # loop start label
   (body)
-  (조건값 push)
-  마아앙!?      # 조건 거짓이면 loop end label로 탈출
-마앙!?          # goto loop start
-망!?            # loop end label
+마아앙(d)!?       # 항상 거짓(0) push → end label로 점프 (break)
+마앙(d)!?         # goto loop start
+망(d)!?           # loop end label
 ```
 
-### 카운터 루프 — 3부터 1까지 출력
+`while True:` 패턴 (무한 루프 + break):
+
+```text
+망(d)!?           # loop start label
+  (body)
+  ...
+  망 마아앙(d)!?  # break: push 0 → if_false_jump to loop end
+  ...
+마앙(d)!?         # goto loop start
+망(d)!?           # loop end label
+```
+
+### 카운터 루프 (for i in range(n)) — range(3) 예시
+
+```text
+망               # push 0  (i 초기화)
+자허..           # store i
+마아아앙         # push 3  (range 상한)
+망(d)!?          # loop start label
+  자허...        # dup 카운터
+  마아앙(d)!?    # if 0, jump to loop end
+  (body)         # 루프 바디 (i 로드/사용)
+  마앙 마앙!     # 카운터 -= 1
+  자허.          # load i
+  마앙 망!       # i += 1
+  자허..         # store i
+마앙(d)!?        # goto loop start
+망(d)!?          # loop end label
+자허             # pop 0
+```
+
+### 중첩 루프
+
+외부 루프 타입 d=0, 내부 루프 타입 d=1 — 서로 다른 dot 수라 레이블이 겹치지 않는다.
+
+### if (else 없음)
+
+```text
+(조건값 push)
+마아앙(d)!?      # 거짓이면 end label로 점프
+  (body)
+망(d)!?          # end label
+```
+
+### if / else
+
+```text
+(조건값 push)
+자허...          # dup 조건값
+마아앙(d)!?      # 거짓이면 else label로 점프
+  (if body)
+망(d)!?          # else label
+(BOOL_NOT)       # 원래 조건이 참이면 0, 거짓이면 1
+마아앙(d)!?      # 0이면(원래 참이면) end label로 점프
+  (else body)
+망(d)!?          # end label
+```
+
+BOOL_NOT: `자허... 자허... 마아앙! 마앙 망! 자허! 자허 마앙 자허! 마아아앙!`
+→ x=0이면 1, x≠0이면 0 반환 (else body 진입 여부 결정)
+
+### 카운터 루프 예시 — 3부터 1까지 출력 (d=0)
 
 ```text
 마아아앙        # push 3
-망!?            # label 0 (loop start)
+망!?            # label (loop start, d=0)
   자허...       # dup
-  마아앙!?      # if 0, jump to label 1 (loop end)
+  마아앙!?      # if 0, jump to loop end (d=0)
   자허...       # dup
   망?           # print number
   마앙!         # sub 1
-마앙!?          # goto label 0
-망!?            # label 1 (loop end)
+마앙!?          # goto loop start (d=0)
+망!?            # loop end label (d=0)
 자허            # pop 0
 ```
 
-출력: `3 2 1`
+출력: `321`
 
 ---
 
@@ -170,9 +237,11 @@ dot n개 → 값 << n (비트 시프트 좌, 즉 값 × 2ⁿ) 을 push.
 
 ### 제어 (`!?`)
 
-- `망!?` — label
-- `마앙!?` — goto
-- `마아앙!?` — if_false_jump
+dot 수 d가 레이블 타입. 같은 d끼리만 매칭된다.
+
+- `망(d)!?` — label (d = dot 개수)
+- `마앙(d)!?` — goto (같은 d의 가장 가까운 이전 label)
+- `마아앙(d)!?` — if_false_jump (같은 d의 가장 가까운 다음 label)
 
 ### 스택 / 메모리 (`자허`)
 
@@ -191,4 +260,4 @@ dot n개 → 값 << n (비트 시프트 좌, 즉 값 × 2ⁿ) 을 push.
 
 ## 7. 한 줄 요약
 
-`망`/`마(아)*앙`의 `아` 개수로 값을 표현하고, dot suffix로 비트 시프트 push, suffix(`!` `?` `!?`)로 산술(add/sub/mul/div/mod/shl/pow)·출력·제어를 수행하며, `자허` 6종으로 스택·메모리를 조작하는 마아앙 스타일 스택 언어.
+`망`/`마(아)*앙`의 `아` 개수로 값을 표현하고, dot suffix로 비트 시프트 push, suffix(`!` `?` `!?`)로 산술·출력·제어를 수행하며, 제어 흐름은 dot 수가 레이블 타입으로 작동해 중첩 구조를 지원하고, `자허` 6종으로 스택·메모리를 조작하는 마아앙 스타일 스택 언어.
