@@ -32,7 +32,7 @@ interface Instruction {
 }
 
 function parseImage(image: string): Instruction {
-	let pos = 0;
+	let pos: number;
 	let body: 'jaheo' | 'number';
 	let value = 0;
 

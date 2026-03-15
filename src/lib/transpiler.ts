@@ -143,7 +143,6 @@ function pushNumber(n: number): string {
 			if (!deltaToken) continue;
 			const cToken = bestSingleToken(n + delta);
 			if (cToken) {
-				bestCost = 3;
 				best = `${cToken} ${deltaToken} 마앙!`;
 				break;
 			}
